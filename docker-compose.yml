@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: routebite-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-routebite_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-routebite_secure_pass_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-routebite_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U routebite_user -d routebite_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: routebite-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://routebite_user:routebite_secure_pass_2026@db:5432/routebite_db
+      SECRET_KEY: ${SECRET_KEY:-karnataka_expressway_jwt_secret_key_routebite}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-rzp_test_sandbox_dummy}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-rzp_test_secret_dummy}
+      COMMISSION_RATE: 12
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: routebite-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

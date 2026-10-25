@@ -1,0 +1,6 @@
+{
+  "name": "RouteBite — Bus Food Delivery Platform",
+  "description": "Pre-order fresh, hygienic meals from top highway restaurants along your bus journey in Karnataka. Pick up piping-hot food right at your scheduled stop.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
